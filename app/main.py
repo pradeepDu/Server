@@ -1,33 +1,44 @@
-import socket  # noqa: F401
+import socket
+
+def handle_request(request):
+    # Split request lines
+    request_lines = request.splitlines()
+    
+    # The first line is the request line (method, path, version)
+    request_line = request_lines[0]
+    print(f"Request Line: {request_line}")  # For debugging
+    
+    # Split the request line into parts
+    method, path, _ = request_line.split()
+
+    # Determine response based on path
+    if path == "/":
+        return b"HTTP/1.1 200 OK\r\n\r\n"
+    else:
+        return b"HTTP/1.1 404 Not Found\r\n\r\n"
 
 def main():
-    # You can use print statements as follows for debugging, they'll be visible when running tests.
-    print("Logs from your program will appear here!")
-
-    # Create a socket that will listen on localhost, port 4221
+    print("Starting server...")
+    
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
-    # Bind the socket to localhost and port 4221
     server_socket.bind(("localhost", 4221))
-    
-    # Listen for incoming connections (max 1 connection at a time)
     server_socket.listen(1)
     print("Server is listening on port 4221...")
     
-    # Accept a connection from a client
-    client_socket, client_address = server_socket.accept()
-    print(f"Connection established with {client_address}")
-    
-    # Send the HTTP response
-    response = b"HTTP/1.1 200 OK\r\n\r\n"
-    client_socket.sendall(response)
-    
-    # Close the client connection
-    client_socket.close()
-    
-    # Close the server socket
-    server_socket.close()
+    while True:
+        client_socket, client_address = server_socket.accept()
+        print(f"Connection established with {client_address}")
+        
+        # Receive the request (you can set a buffer size, here it's 1024 bytes)
+        request = client_socket.recv(1024).decode('utf-8')
+        print(f"Request received:\n{request}")
+        
+        # Handle the request and get the response
+        response = handle_request(request)
+        
+        # Send the response
+        client_socket.sendall(response)
+        client_socket.close()
 
 if __name__ == "__main__":
     main()
-
